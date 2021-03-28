@@ -40,7 +40,6 @@ public class CsvParser {
             mapConverter.get(temp.get(1)).put(
                     temp.get(0), 1 / Double.parseDouble(temp.get(2)));
             temp = removeSpaceList(nextLine());
-            System.out.println(temp);
         }
         mapConverter.put("1", new HashMap<>());
         mapConverter.get("1").put("1", 1.0);

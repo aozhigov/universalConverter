@@ -37,6 +37,13 @@ public class ConverterTest {
             assert converterMethod("ч/с", "") == 3600;
             assert converterMethod("см*см", "мм*мм") == 100;
             assert converterMethod("1/с", "1/мин") == 60;
+            assert converterMethod("м", "м") == 1;
+            assert converterMethod("н*м", "дж") == 1;
+            assert converterMethod("н*мм", "дж") == 1.0 / 1000;
+            assert converterMethod("кг*м/с*с", "н") == 1;
+            assert converterMethod("дж/м", "н") == 1;
+            assert converterMethod("дж/кг", "н*м/кг") == 1;
+            assert converterMethod("", "") == 1;
         }
 
         private double converterMethod(String from, String to) throws Exception {

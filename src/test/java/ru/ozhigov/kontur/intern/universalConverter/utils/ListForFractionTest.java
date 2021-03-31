@@ -38,35 +38,35 @@ public class ListForFractionTest {
     @Test
     public void testList(){
         assert list1.getIdxDel() == 1;
-        assert list1.getFirstSize() == 1;
-        assert list1.getSecondSize() == 1;
+        assert list1.numSize() == 1;
+        assert list1.denSize() == 1;
         assert (new HashMap<>() {{put(1, 1);}})
-                .equals(list1.getLeftPartCounter());
+                .equals(list1.numCounter());
         assert (new HashMap<>() {{put(2, 1);}})
-                .equals(list1.getRightPartCounter());
+                .equals(list1.denCounter());
 
         assert list2.getIdxDel() == -1;
-        assert list2.getFirstSize() == 2;
-        assert list2.getSecondSize() == 0;
+        assert list2.numSize() == 2;
+        assert list2.denSize() == 0;
         assert (new HashMap<>() {{put(1, 1); put(2, 1);}})
-                .equals(list2.getLeftPartCounter());
+                .equals(list2.numCounter());
         assert (new HashMap<>())
-                .equals(list2.getRightPartCounter());
+                .equals(list2.denCounter());
 
         assert list3.getIdxDel() == 3;
-        assert list3.getFirstSize() == 3;
-        assert list3.getSecondSize() == 1;
+        assert list3.numSize() == 3;
+        assert list3.denSize() == 1;
         assert (new HashMap<>() {{put(1, 1); put(2, 1); put(3, 1);}})
-                .equals(list3.getLeftPartCounter());
+                .equals(list3.numCounter());
         assert (new HashMap<>() {{put(4, 1);}})
-                .equals(list3.getRightPartCounter());
+                .equals(list3.denCounter());
 
         assert list4.getIdxDel() == 0;
-        assert list4.getFirstSize() == 0;
-        assert list4.getSecondSize() == 1;
+        assert list4.numSize() == 0;
+        assert list4.denSize() == 1;
         assert (new HashMap<>())
-                .equals(list4.getLeftPartCounter());
+                .equals(list4.numCounter());
         assert (new HashMap<>() {{put(1, 1);}})
-                .equals(list4.getRightPartCounter());
+                .equals(list4.denCounter());
     }
 }

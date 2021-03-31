@@ -33,9 +33,12 @@ public class CsvParser {
                 mapConverter.put(temp.get(0), new HashMap<>());
             mapConverter.get(temp.get(0)).put(
                     temp.get(1), Double.parseDouble(temp.get(2)));
+            mapConverter.get(temp.get(0)).put(temp.get(0), 1.0);
 
-            if (!mapConverter.containsKey(temp.get(1)))
-                mapConverter.put(temp.get(1), new HashMap<>());
+            if (!mapConverter.containsKey(temp.get(1))) {
+                String temp_str = temp.get(1);
+                mapConverter.put(temp_str, new HashMap<>() {{put(temp_str, 1.0);}});
+            }
 
             mapConverter.get(temp.get(1)).put(
                     temp.get(0), 1 / Double.parseDouble(temp.get(2)));

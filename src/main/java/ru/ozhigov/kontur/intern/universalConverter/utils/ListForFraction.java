@@ -36,31 +36,31 @@ public class ListForFraction<T> extends ArrayList<T> {
         idxDel = this.size();
     }
 
-    public int getFirstSize(){
+    public int numSize(){
         return idxDel == -1
                 ? this.size()
                 : idxDel;
     }
 
-    public int getSecondSize(){
+    public int denSize(){
         return idxDel == -1
                 ? 0
-                : this.size() - getFirstSize();
+                : this.size() - numSize();
     }
 
-    public CopyOnWriteArraySet<T> getLeftPartKeys(){
+    public CopyOnWriteArraySet<T> numKeys(){
         return new CopyOnWriteArraySet<>(leftCounter.keySet());
     }
 
-    public HashMap<T, Integer> getLeftPartCounter(){
+    public HashMap<T, Integer> numCounter(){
         return leftCounter;
     }
 
-    public CopyOnWriteArraySet<T> getRightPartKeys(){
+    public CopyOnWriteArraySet<T> denKeys(){
         return new CopyOnWriteArraySet<>(rightCounter.keySet());
     }
 
-    public HashMap<T, Integer> getRightPartCounter(){
+    public HashMap<T, Integer> denCounter(){
         return rightCounter;
     }
 

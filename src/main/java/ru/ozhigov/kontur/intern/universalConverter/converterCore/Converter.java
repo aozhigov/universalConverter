@@ -1,11 +1,11 @@
 package ru.ozhigov.kontur.intern.universalConverter.converterCore;
 
 import ru.ozhigov.kontur.intern.universalConverter.exceptions.*;
+import ru.ozhigov.kontur.intern.universalConverter.parsers.ExpressionParser;
 import ru.ozhigov.kontur.intern.universalConverter.utils.*;
 
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class Converter {
@@ -41,7 +41,7 @@ public class Converter {
                             double multiplier)
             throws NotFoundException, BadRequestException {
         return rounded(Double.toString(converter(from, to, multiplier,
-                new ListForFraction<>(), new ListForFraction<>())), 15);
+                null, null)), 15);
     }
 
     private double converter(ListForFraction<String> from,
@@ -50,38 +50,39 @@ public class Converter {
                              ListForFraction<String> fromPrev,
                              ListForFraction<String> toPrev)
             throws NotFoundException, BadRequestException {
-        if (from == fromPrev && to == toPrev)
+        if (fromPrev != null && toPrev != null
+                && from.equals(fromPrev) && to.equals(toPrev))
             throw new NotFoundException(to.toString());
 
         if (from.size() == to.size()
-                && from.getFirstSize() == to.getFirstSize()
-                && from.getSecondSize() == to.getSecondSize()){
-            return convertProduct(from.getLeftPartCounter(),
-                    to.getLeftPartCounter(), multiplier)
-                    / convertProduct(from.getRightPartCounter(),
-                    to.getRightPartCounter(), 1);
+                && from.numSize() == to.numSize()
+                && from.denSize() == to.denSize()){
+            return convertProduct(from.numCounter(),
+                    to.numCounter(), multiplier)
+                    / convertProduct(from.denCounter(),
+                    to.denCounter(), 1);
         }
 
         if (to.size() == 0) {
             if (from.getIdxDel() == -1
-                    || from.getFirstSize() != from.getSecondSize())
+                    || from.numSize() != from.denSize())
                 throw new NotFoundException(to.toString());
-            return convertProduct(from.getLeftPartCounter(),
-                    from.getRightPartCounter(), 1);
+            return convertProduct(from.numCounter(),
+                    from.denCounter(), 1);
         }
 
         if (from.size() == 0) {
             if (to.getIdxDel() == -1
-                    || to.getFirstSize() != to.getSecondSize())
+                    || to.numSize() != to.denSize())
                 throw new NotFoundException(to.toString());
-            return 1 / convertProduct(to.getLeftPartCounter(),
-                    to.getRightPartCounter(), 1);
+            return 1 / convertProduct(to.numCounter(),
+                    to.denCounter(), 1);
         }
 
         Tuple<ListForFraction<String>, Double> fromReduce =
-                reduceFraction(from);
+                reduceFraction(expandVar(from, multiplier));
         Tuple<ListForFraction<String>, Double> toReduce =
-                reduceFraction(to);
+                reduceFraction(expandVar(to, 1));
 
         return converter(fromReduce.getKey(),
                 toReduce.getKey(),
@@ -97,14 +98,14 @@ public class Converter {
     }
 
     public Tuple<ListForFraction<String>, Double> reduceFraction(
-            ListForFraction<String> list) throws BadRequestException {
-        HashMap<String, Integer> from = list.getLeftPartCounter();
-        HashMap<String, Integer> to = list.getRightPartCounter();
+            Tuple<ListForFraction<String>, Double> value) throws BadRequestException {
+        HashMap<String, Integer> from = value.getKey().numCounter();
+        HashMap<String, Integer> to = value.getKey().denCounter();
 
         if (from.size() == 0 && to.size() == 0)
             throw new BadRequestException(from.toString());
 
-        return coreConvert(from, to, 1, false);
+        return coreConvert(from, to, value.getValue(), false);
     }
 
     private Tuple<ListForFraction<String>, Double> coreConvert(
@@ -148,17 +149,72 @@ public class Converter {
             if (!isReduce) continue;
         }
 
-        ListForFraction<String> result = (isBadRequest)
-                ? new ListForFraction<>()
-                : new ListForFraction<>() {{
-                    addAll(fromKeys);
-                    addDel();
-                    addAll(toKeys);
-                }};
+        ListForFraction<String> result = new ListForFraction<>();
+        if (!isBadRequest){
+            addVarCounter(result, from);
+            result.addDel();
+            addVarCounter(result, to);
+        }
 
         return new Tuple<>(result, multiplier);
     }
 
+    private Tuple<ListForFraction<String>, Double> expandVar(
+            ListForFraction<String> value, double coefficient){
+        ArrayList<String> numerator = new ArrayList<>();
+        ArrayList<String> denominator = new ArrayList<>();
+
+        for (int i = 0; i < value.size(); i++){
+            String from = value.get(i);
+            int fromParseSize = ExpressionParser.parse(from).size();
+
+            if (mapConverter.containsKey(from))
+                for (String to : mapConverter.get(from).keySet()){
+                    ListForFraction<String> toParse = ExpressionParser.parse(to);
+
+                    if (toParse.size() > fromParseSize) {
+                        HashMap<String, Integer> num = value.numCounter();
+                        HashMap<String, Integer> den = value.denCounter();
+
+                        if (i < value.idxDel && num.get(from) > 0)
+                            coefficient *= recalculate(
+                                    num, from, to,
+                                    numerator, denominator, toParse);
+                        else if (den.get(from) > 0)
+                            coefficient /= recalculate(
+                                    num, from, to,
+                                    denominator, numerator, toParse);
+                    }
+                }
+        }
+
+        ListForFraction<String> result = new ListForFraction<>();
+        addVarCounter(result, value.numCounter());
+        result.addAll(numerator);
+        result.addDel();
+        result.addAll(denominator);
+        addVarCounter(result, value.denCounter());
+
+        return new Tuple<>(result, coefficient);
+    }
+
+    private void addVarCounter(ArrayList<String> whom,
+                               HashMap<String, Integer> counter){
+        for (String item: counter.keySet()) {
+            int count = counter.get(item);
+            while(count-- > 0)
+                whom.add(item);
+        }
+    }
+
+    private double recalculate(HashMap<String, Integer> map, String from, String to,
+                             ArrayList<String> numerator, ArrayList<String> denominator,
+                             ListForFraction<String> toParse){
+        map.put(from, map.get(from) - 1);
+        addVarCounter(numerator, toParse.numCounter());
+        addVarCounter(denominator, toParse.denCounter());
+        return mapConverter.get(from).get(to);
+    }
 
     private String rounded(String coefficient, int countFrac) {
         if (coefficient.matches("\\.")) {

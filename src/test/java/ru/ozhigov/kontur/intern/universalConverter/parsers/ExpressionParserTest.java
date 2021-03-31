@@ -40,8 +40,8 @@ public class ExpressionParserTest {
     }
 
     private boolean checkListForFraction(ListForFraction<String> first, ListForFraction<String> second) {
-        if (first.getFirstSize() == second.getFirstSize() && first.getSecondSize() == second.getSecondSize()) {
-            return checkHashset(first.getLeftPartKeys(), second.getLeftPartKeys()) && checkHashset(first.getRightPartKeys(), second.getRightPartKeys());
+        if (first.numSize() == second.numSize() && first.denSize() == second.denSize()) {
+            return checkHashset(first.numKeys(), second.numKeys()) && checkHashset(first.denKeys(), second.denKeys());
         }
 
         return false;

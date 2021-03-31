@@ -46,32 +46,32 @@ public class ExpressionParser {
 
     private static ListForFraction<String> simplification(
             ListForFraction<String> list) {
-        CopyOnWriteArraySet<String> leftPartKeys = list.getLeftPartKeys();
-        CopyOnWriteArraySet<String> rightPartKeys = list.getRightPartKeys();
-        HashMap<String, Integer> leftPartCounter = list.getLeftPartCounter();
-        HashMap<String, Integer> rightPartCounter = list.getRightPartCounter();
+        CopyOnWriteArraySet<String> numKeys = list.numKeys();
+        CopyOnWriteArraySet<String> denKeys = list.denKeys();
+        HashMap<String, Integer> numCounter = list.numCounter();
+        HashMap<String, Integer> denCounter = list.denCounter();
 
-        for (String item : leftPartKeys)
-            if (rightPartKeys.contains(item)) {
-                int min = Math.min(leftPartCounter.get(item),
-                        rightPartCounter.get(item));
+        for (String item : numKeys)
+            if (denKeys.contains(item)) {
+                int min = Math.min(numCounter.get(item),
+                        denCounter.get(item));
 
-                leftPartCounter.put(item, leftPartCounter.get(item) - min);
-                rightPartCounter.put(item, rightPartCounter.get(item) - min);
+                numCounter.put(item, numCounter.get(item) - min);
+                denCounter.put(item, denCounter.get(item) - min);
 
-                if (leftPartCounter.get(item) <= 0)
-                    leftPartKeys.remove(item);
+                if (numCounter.get(item) <= 0)
+                    numKeys.remove(item);
 
-                if (rightPartCounter.get(item) <= 0)
-                    rightPartKeys.remove(item);
+                if (denCounter.get(item) <= 0)
+                    denKeys.remove(item);
             }
 
         return new ListForFraction<>() {{
                         addAll(getResultSequence(
-                                leftPartKeys, leftPartCounter));
+                                numKeys, numCounter));
                         addDel();
                         addAll(getResultSequence(
-                                rightPartKeys, rightPartCounter));
+                                denKeys, denCounter));
                     }};
     }
 
